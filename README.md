@@ -2,7 +2,8 @@
 
 A clean, beginner-friendly machine-learning project that predicts whether a
 Titanic passenger survived, using the standard Kaggle dataset and a
-**Random Forest with 100 trees**.
+**Random Forest with 100 trees**. It includes a step-by-step notebook, a
+terminal pipeline, and an interactive **Flask website**.
 
 The project reproduces the results in the presentation exactly:
 
@@ -15,7 +16,34 @@ The project reproduces the results in the presentation exactly:
 | Majority-class baseline | 58.66% |
 
 > New to the project? Read `INSTRUCTOR_GUIDE.md` for a plain-English walkthrough
-> and likely viva questions. Run the notebook for the step-by-step story.
+> and likely viva questions. Run the notebook for the step-by-step story, or the
+> Flask website for an interactive demo.
+
+---
+
+## 0. Website preview
+
+![Titanic Survival Lab website overview](docs/website-overview.png)
+
+The project now includes a **Flask website** on top of the exact same model:
+
+| Page | What it shows |
+|---|---|
+| **Overview** | Hero result, six charts, confusion matrix, per-class metrics and the pipeline. |
+| **Predict** | Interactive passenger form with a live survival probability and the exact features sent to the forest. |
+| **Methodology** | Every cleaning/feature/model choice explained, plus honest limitations. |
+| **Dataset** | Missing-value table, column guide, target balance and a raw data preview. |
+
+![Prediction result page](docs/website-prediction.png)
+
+Start it with:
+
+```bash
+python app.py
+```
+
+Then open <http://127.0.0.1:5000>. The first run automatically trains and saves
+the model if `outputs/titanic_random_forest.joblib` is missing.
 
 ---
 
@@ -27,6 +55,7 @@ TITANIC PROJECT/
 ├── INSTRUCTOR_GUIDE.md                    <- walkthrough cheat sheet + viva Q&A
 ├── requirements.txt                       <- Python dependencies
 ├── .gitignore                             <- keeps venvs, caches and secrets out of Git
+├── app.py                                 <- Flask website entry point
 ├── data/
 │   ├── train.csv                          <- 891 x 12 Kaggle training data
 │   └── README.md                          <- dataset source and expected checks
@@ -34,9 +63,23 @@ TITANIC PROJECT/
 │   └── titanic_survival_prediction.ipynb  <- executed notebook with all outputs
 ├── src/
 │   ├── pipeline.py                        <- loading, cleaning, features, model
+│   ├── predict.py                         <- website prediction service
 │   ├── eda_plots.py                       <- five EDA charts
 │   ├── train_model.py                     <- end-to-end terminal script
 │   └── download_data.py                   <- dataset helper / fallback
+├── templates/                             <- Flask HTML pages
+│   ├── base.html
+│   ├── index.html
+│   ├── predict.html
+│   ├── methodology.html
+│   ├── dataset.html
+│   └── 404.html
+├── static/
+│   ├── css/style.css                      <- responsive website styling
+│   └── js/app.js                          <- sample-passenger shortcuts
+├── docs/
+│   ├── website-overview.png               <- README preview
+│   └── website-prediction.png             <- README preview
 └── outputs/
     ├── metrics.txt                        <- exact evaluation summary
     ├── notebook_metrics.txt               <- metrics written by the notebook
@@ -123,6 +166,16 @@ python -m jupyter notebook notebooks/titanic_survival_prediction.ipynb
 
 Run all cells (`Kernel -> Restart & Run All`). The notebook is already saved
 with outputs, so it can also be read without running anything.
+
+### Step 6 - Launch the website
+
+```bash
+python app.py
+```
+
+Open <http://127.0.0.1:5000>. Use the **Predict** page for the interactive
+demo, **Methodology** for the design choices, and **Dataset** for the raw data.
+Stop the server with `Ctrl+C`.
 
 Useful options for the script:
 
@@ -243,12 +296,16 @@ importance chart.
 
 | File | Purpose |
 |---|---|
+| `app.py` | Flask website entry point: routes, form validation, pages. |
+| `templates/` + `static/` | HTML pages, responsive CSS and the small sample-passenger script. |
 | `notebooks/titanic_survival_prediction.ipynb` | Step-by-step demonstration with markdown before every code cell. Best for a live review. |
 | `src/train_model.py` | One command runs the whole project and prints/verifies the metrics. |
 | `src/pipeline.py` | Shared, commented functions for loading, cleaning, engineering, encoding and splitting. |
+| `src/predict.py` | Loads the trained model and turns one website form into a prediction. |
 | `src/eda_plots.py` | Creates the five required charts and the optional feature-importance chart. |
 | `src/download_data.py` | Downloads and validates `data/train.csv` if it is missing. |
 | `INSTRUCTOR_GUIDE.md` | Plain-language explanations, metric walkthrough and viva questions with answers. |
+| `docs/` | Website screenshots used in this README. |
 
 For a deep explanation of every choice (median vs mean, mode, `FamilySize`,
 one-hot encoding, 80/20 split, 100 trees), see `INSTRUCTOR_GUIDE.md`.
@@ -265,6 +322,8 @@ one-hot encoding, 80/20 split, 100 trees), see `INSTRUCTOR_GUIDE.md`.
 | Metrics differ by a small amount | Different scikit-learn version or a different CSV. Use the verified versions above. |
 | PowerShell won't activate `.venv` | `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`. |
 | Jupyter command not found | Use `python -m jupyter notebook ...` instead of `jupyter notebook ...`. |
+| `ModuleNotFoundError: flask` | Activate `.venv`, then `pip install -r requirements.txt`. |
+| Port 5000 already in use | Run `$env:PORT=5001; python app.py` (PowerShell) and open port 5001. |
 
 ---
 

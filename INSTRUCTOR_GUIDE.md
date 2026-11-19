@@ -26,10 +26,40 @@ and the terminal run.
 
 ---
 
+## 1b. Website demo (2 minutes, optional but recommended)
+
+If the instructor prefers a graphical demo, use the Flask site instead of the
+terminal:
+
+```bash
+python app.py
+```
+
+Open <http://127.0.0.1:5000> and show:
+
+1. **Overview** - the 82.68% ring, the six charts, the confusion matrix and the
+   per-class precision/recall bars on one page.
+2. **Predict** - click **First-class woman**, submit, and point out the 95%
+   survival probability and the "Features sent to the forest" panel.
+3. Click **Third-class man** and submit - the prediction flips to "Did not
+   survive" with a very low probability. This shows the model is not just
+   returning one constant answer.
+4. **Methodology** - the eight decision cards explain cleaning, encoding,
+   split, and the forest.
+5. **Dataset** - missing values, target balance, column guide and raw rows.
+
+The site uses the same saved model and the same 10 features; it does not retrain
+per request, so the metrics stay identical.
+
+---
+
 ## 2. What each file does (plain language)
 
 | File | Plain-language purpose |
 |---|---|
+| `app.py` | Flask website: routes for the overview, prediction form, methodology, dataset and health check. |
+| `templates/` + `static/` | HTML pages, responsive CSS and a small JavaScript helper for sample passengers. |
+| `src/predict.py` | Loads the model and converts one form submission into the 10 training features and a probability. |
 | `data/train.csv` | The Kaggle training table: one row per passenger, including whether they survived. |
 | `src/pipeline.py` | The reusable recipe: load -> clean -> add features -> encode -> split -> build model. Written as small functions so each step is testable. |
 | `src/eda_plots.py` | Draws the EDA charts and saves them to `outputs/figures/`. |
@@ -313,6 +343,24 @@ Use stratification and cross-validation, tune the forest, try gradient boosting,
 and validate on a larger held-out set. More data would also make the test
 metrics less sensitive to a single split.
 
+**Q25. How does the website use the model?**
+`app.py` is a Flask server. When you submit the form, `src/predict.py` builds the
+same 10 features used in training (including `FamilySize`, `IsAlone`,
+`Sex_male`, `Embarked_Q` and `Embarked_S`), calls `predict_proba` on the saved
+100-tree forest, and renders the probability on the result card. The website
+does not retrain per request, so the model and metrics stay consistent.
+
+**Q26. Is the website doing anything different from the notebook?**
+No. The notebook, `src/train_model.py` and the website share `src/pipeline.py`
+for cleaning, feature engineering and model settings. The website only adds an
+HTML form and a presentation layer; the model is the same `random_state=847`
+forest with the same 82.68% test accuracy.
+
+**Q27. What happens if the saved model file is missing?**
+`get_model()` trains the forest once from `data/train.csv`, saves it to
+`outputs/titanic_random_forest.joblib`, and reuses it for later requests. That
+keeps a fresh clone runnable without committing a binary model file.
+
 ---
 
 ## 6. Reproducibility and honesty notes
@@ -344,6 +392,8 @@ metrics less sensitive to a single split.
 | Charts missing | They are saved in `outputs/figures/` even if the notebook display is closed. |
 | Metrics differ slightly | Check the scikit-learn version and the CSV; rerun in a fresh environment. |
 | Notebook kernel dies | `Kernel -> Restart & Run All`; the pipeline is lightweight. |
+| Website port already in use | Stop the old server or run `$env:PORT=5001; python app.py`. |
+| Website shows an import error | Activate `.venv` and run `pip install -r requirements.txt` (Flask is included). |
 
 **One-sentence summary to end the review:** "I cleaned the 891-row Kaggle
 dataset, engineered family features, one-hot encoded the categorical columns,

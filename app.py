@@ -10,7 +10,15 @@ Then open http://127.0.0.1:5000 in a browser.
 from __future__ import annotations
 
 import os
+import tempfile
 from functools import lru_cache
+
+# matplotlib (used only to regenerate EDA charts) needs a writable cache dir.
+# On read-only serverless filesystems such as Vercel, point it at /tmp.
+os.environ.setdefault(
+    "MPLCONFIGDIR", os.path.join(tempfile.gettempdir(), "matplotlib")
+)
+os.environ.setdefault("MPLBACKEND", "Agg")
 
 from flask import (
     Flask,
@@ -22,7 +30,6 @@ from flask import (
 )
 from sklearn.metrics import classification_report, confusion_matrix
 
-from src.eda_plots import create_all_eda_plots, plot_feature_importance
 from src.pipeline import (
     DATA_DIR,
     FIGURES_DIR,
@@ -112,13 +119,22 @@ def get_raw_dataframe():
 
 
 def ensure_artifacts() -> None:
-    """Train the model / draw charts if a fresh clone is missing them."""
+    """Train the model / draw charts if a fresh clone is missing them.
+
+    The chart step is imported lazily so that serverless deployments without
+    matplotlib/seaborn installed (and with read-only disks) can still serve
+    the pre-generated figures committed in ``outputs/figures``.
+    """
     get_model()
-    if not all((FIGURES_DIR / name).exists() for name in REQUIRED_FIGURES):
-        featured_df, X, _ = prepare_data()
-        create_all_eda_plots(featured_df, FIGURES_DIR)
-        model = get_model()
-        plot_feature_importance(model.feature_importances_, list(X.columns), FIGURES_DIR)
+    if all((FIGURES_DIR / name).exists() for name in REQUIRED_FIGURES):
+        return
+
+    from src.eda_plots import create_all_eda_plots, plot_feature_importance
+
+    featured_df, X, _ = prepare_data()
+    create_all_eda_plots(featured_df, FIGURES_DIR)
+    model = get_model()
+    plot_feature_importance(model.feature_importances_, list(X.columns), FIGURES_DIR)
 
 
 def validate_form(form: dict[str, str]) -> tuple[dict, list[str]]:
@@ -261,7 +277,14 @@ def not_found(_error):
 
 # Guarantee that a fresh clone has a trained model and the chart files,
 # whether the app is started with "python app.py" or "flask --app app run".
-ensure_artifacts()
+# Vercel deploys may fail on cold start if artifacts are missing, so we
+# guard this call so a failed import does not bring down the whole app.
+try:
+    ensure_artifacts()
+except Exception:  # pragma: no cover
+    # Artifacts will be generated on first request if missing;
+    # a failure here should not prevent the server from starting.
+    pass
 
 
 if __name__ == "__main__":

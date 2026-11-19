@@ -36,14 +36,25 @@ DEFAULT_FEATURE_ORDER = [
 
 @lru_cache(maxsize=1)
 def get_model():
-    """Load the saved forest, or train and save it on first use."""
+    """Load the saved forest, or train it on first use.
+
+    Saving is best effort: serverless filesystems (for example Vercel) are
+    read-only apart from /tmp, so a failed ``joblib.dump`` must never prevent
+    the freshly trained model from being served.
+    """
     if MODEL_PATH.exists():
-        return joblib.load(MODEL_PATH)
+        try:
+            return joblib.load(MODEL_PATH)
+        except Exception:  # corrupt or version-mismatched checkpoint
+            pass
 
     _, X, y = prepare_data()
     model = build_model().fit(X, y)
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    joblib.dump(model, MODEL_PATH)
+    try:
+        OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+        joblib.dump(model, MODEL_PATH)
+    except OSError:
+        pass  # read-only filesystem: keep the in-memory model only
     return model
 
 

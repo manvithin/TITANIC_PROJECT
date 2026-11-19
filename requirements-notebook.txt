@@ -1,0 +1,6 @@
+# Extra dependencies for regenerating the notebook and EDA charts locally.
+# The website serves the committed figures in outputs/figures, so these are
+# not needed on hosts such as Vercel.
+-r requirements.txt
+matplotlib>=3.9
+seaborn>=0.13

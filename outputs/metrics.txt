@@ -1,0 +1,27 @@
+TITANIC SURVIVAL PREDICTION - EVALUATION SUMMARY
+====================================================
+Dataset            : data/train.csv (891 rows, 12 columns)
+Missing before     : Age 177, Cabin 687, Embarked 2
+Missing after      : 0
+Model              : RandomForestClassifier(n_estimators=100)
+Random state       : 847
+Split              : 80/20 (test_size=0.2)
+Training samples   : 712
+Test samples       : 179 (105 died, 74 survived)
+
+Accuracy           : 0.8268 (82.68%)
+Correct predictions: 148 / 179
+
+Confusion matrix (rows = actual, columns = predicted):
+[[ 93  12]
+ [ 19  55]]
+
+Classification report:
+              precision    recall  f1-score   support
+
+    Died (0)       0.83      0.89      0.86       105
+Survived (1)       0.82      0.74      0.78        74
+
+    accuracy                           0.83       179
+   macro avg       0.83      0.81      0.82       179
+weighted avg       0.83      0.83      0.83       179

@@ -1,0 +1,6 @@
+TITANIC NOTEBOOK - EVALUATION SUMMARY
+Accuracy: 0.8268 (82.68%)
+Correct : 148 of 179
+Confusion matrix: [[93, 12], [19, 55]]
+Expected matrix : [[93, 12], [19, 55]]
+Reproduces presentation: True

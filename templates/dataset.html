@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}Dataset - Titanic Survival Lab{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <div class="container">
+    <span class="eyebrow">The data</span>
+    <h1>891 passengers, 12 columns</h1>
+    <p>The standard Kaggle Titanic training file. Every number on this page is verified when the app starts.</p>
+  </div>
+</section>
+
+<section class="section section--compact">
+  <div class="container">
+    <div class="dataset-stats">
+      <div class="stat-card">
+        <strong>{{ metrics.passengers }}</strong>
+        <span>passengers</span>
+      </div>
+      <div class="stat-card">
+        <strong>12</strong>
+        <span>columns</span>
+      </div>
+      <div class="stat-card">
+        <strong>549 <small>/ 342</small></strong>
+        <span>died / survived</span>
+      </div>
+      <div class="stat-card">
+        <strong>{{ missing.values() | sum }}</strong>
+        <span>missing cells</span>
+      </div>
+    </div>
+
+    <div class="dataset-grid">
+      <div class="card">
+        <div class="card-head">
+          <h2>Missing values</h2>
+          <span class="muted">Before cleaning</span>
+        </div>
+        <table class="mini-table">
+          <thead>
+            <tr><th>Column</th><th>Missing</th><th>Action taken</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>Cabin</code></td>
+              <td>{{ missing.get('Cabin', 0) }}</td>
+              <td>Column dropped (77% empty)</td>
+            </tr>
+            <tr>
+              <td><code>Age</code></td>
+              <td>{{ missing.get('Age', 0) }}</td>
+              <td>Filled with median 28.0</td>
+            </tr>
+            <tr>
+              <td><code>Embarked</code></td>
+              <td>{{ missing.get('Embarked', 0) }}</td>
+              <td>Filled with mode S</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="muted">After cleaning the dataset has zero missing values.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>Target balance</h2>
+          <span class="muted">Survived</span>
+        </div>
+        <div class="balance-bar" aria-label="549 died, 342 survived">
+          <div class="balance-died" style="width: 61.6%">61.6%</div>
+          <div class="balance-survived" style="width: 38.4%">38.4%</div>
+        </div>
+        <div class="balance-legend">
+          <span><i class="dot dot--blue"></i> Died: 549</span>
+          <span><i class="dot dot--orange"></i> Survived: 342</span>
+        </div>
+        <p>Because the classes are imbalanced, the project reports precision, recall and F1 alongside accuracy.</p>
+        <div class="source-line">
+          <span>Source:</span>
+          <a href="https://www.kaggle.com/c/titanic/data" target="_blank" rel="noopener">Kaggle Titanic competition</a>
+          <a class="btn btn-small" href="{{ url_for('download_dataset') }}">Download CSV</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section--tint">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Column guide</span>
+        <h2>What each column means</h2>
+      </div>
+      <p>Columns in grey are excluded from the model, either as identifiers or because they were dropped.</p>
+    </div>
+
+    <div class="card table-card">
+      <table class="data-table column-table">
+        <thead>
+          <tr><th>Column</th><th>Description</th><th>Used in model?</th></tr>
+        </thead>
+        <tbody>
+          {% for column in columns %}
+          <tr>
+            <td><code>{{ column.name }}</code></td>
+            <td>{{ column.description }}</td>
+            <td>
+              {% if column.name in ['Name', 'Ticket', 'PassengerId', 'Cabin'] %}
+                <span class="tag tag--off">No</span>
+              {% elif column.name == 'Survived' %}
+                <span class="tag tag--target">Target</span>
+              {% else %}
+                <span class="tag tag--on">Yes</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Raw preview</span>
+        <h2>The first 12 rows</h2>
+      </div>
+      <p>This is exactly what the cleaning step receives before any transformation.</p>
+    </div>
+
+    <div class="card table-card table-scroll">
+      {{ preview | safe }}
+    </div>
+    <p class="muted table-note">Blank cells are missing values. The model never sees the raw text columns shown here.</p>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+{% block title %}Titanic Survival Lab - 82.68% accuracy{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero-glow" aria-hidden="true"></div>
+  <div class="container hero-grid">
+    <div class="hero-copy">
+      <span class="eyebrow">Machine Learning &middot; Kaggle Titanic</span>
+      <h1>Could you have <span>survived</span> the Titanic?</h1>
+      <p class="hero-lead">
+        A 100-tree Random Forest trained on 891 real passengers. Explore the data,
+        understand the decisions, and predict a passenger's chance of survival.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="{{ url_for('predict') }}">Predict a passenger</a>
+        <a class="btn btn-ghost" href="{{ url_for('methodology') }}">See the methodology</a>
+      </div>
+      <div class="hero-chips">
+        <span>Random Forest &middot; {{ metrics.trees }} trees</span>
+        <span>80/20 split</span>
+        <span>Reproducible seed</span>
+      </div>
+    </div>
+
+    <aside class="score-card" aria-label="Model summary">
+      <div class="score-card-head">
+        <span class="score-kicker">Verified test result</span>
+        <span class="pill pill--success">Reproducible</span>
+      </div>
+      <div class="score-ring" style="--score: {{ metrics.accuracy }}">
+        <div class="score-ring-inner">
+          <strong>{{ metrics.accuracy_short }}</strong>
+          <span>test accuracy</span>
+        </div>
+      </div>
+      <div class="score-stats">
+        <div>
+          <strong>{{ metrics.correct }}</strong>
+          <span>correct</span>
+        </div>
+        <div>
+          <strong>{{ metrics.test_total }}</strong>
+          <span>test passengers</span>
+        </div>
+        <div>
+          <strong>+{{ metrics.improvement | round(0) | int }}</strong>
+          <span>points over baseline</span>
+        </div>
+      </div>
+      <p class="score-footnote">Same metrics as the presentation: 148 of 179 correct.</p>
+    </aside>
+  </div>
+</section>
+
+<section class="stats-strip">
+  <div class="container stats-grid">
+    <div class="stat">
+      <strong>{{ metrics.passengers }}</strong>
+      <span>passengers in the dataset</span>
+    </div>
+    <div class="stat">
+      <strong>{{ metrics.features }}</strong>
+      <span>features used by the model</span>
+    </div>
+    <div class="stat">
+      <strong>{{ metrics.trees }}</strong>
+      <span>decision trees voting</span>
+    </div>
+    <div class="stat">
+      <strong>{{ metrics.accuracy_short }}</strong>
+      <span>accuracy on unseen data</span>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Exploratory data analysis</span>
+        <h2>The story hidden in the data</h2>
+      </div>
+      <p>Five EDA charts, plus feature importance, explain why the model uses sex, class, fare, age and family size.</p>
+    </div>
+
+    <div class="chart-grid">
+      <figure class="chart-card">
+        <div class="chart-img"><img src="{{ url_for('figure', filename='survival_by_sex.png') }}" alt="Bar chart of survival counts by sex"></div>
+        <figcaption>
+          <h3>Survival by sex</h3>
+          <p>Women survived far more often than men. <code>Sex_male</code> is one of the strongest signals.</p>
+        </figcaption>
+      </figure>
+
+      <figure class="chart-card">
+        <div class="chart-img"><img src="{{ url_for('figure', filename='survival_by_pclass.png') }}" alt="Bar chart of survival counts by passenger class"></div>
+        <figcaption>
+          <h3>Survival by class</h3>
+          <p>First-class passengers had the best survival count; third class had the most deaths.</p>
+        </figcaption>
+      </figure>
+
+      <figure class="chart-card">
+        <div class="chart-img"><img src="{{ url_for('figure', filename='target_count.png') }}" alt="Bar chart showing 549 deaths and 342 survivors"></div>
+        <figcaption>
+          <h3>Target distribution</h3>
+          <p>549 passengers died and 342 survived, so accuracy alone is not enough.</p>
+        </figcaption>
+      </figure>
+
+      <figure class="chart-card">
+        <div class="chart-img"><img src="{{ url_for('figure', filename='age_distribution.png') }}" alt="Histogram of passenger ages"></div>
+        <figcaption>
+          <h3>Age distribution</h3>
+          <p>Most passengers were young adults. The spike at 28 comes from median imputation.</p>
+        </figcaption>
+      </figure>
+
+      <figure class="chart-card">
+        <div class="chart-img"><img src="{{ url_for('figure', filename='correlation_heatmap.png') }}" alt="Correlation heatmap of numerical features"></div>
+        <figcaption>
+          <h3>Correlation heatmap</h3>
+          <p>Fare rises with survival; higher class numbers and being alone pull survival down.</p>
+        </figcaption>
+      </figure>
+
+      <figure class="chart-card">
+        <div class="chart-img"><img src="{{ url_for('figure', filename='feature_importance.png') }}" alt="Bar chart of the top ten feature importances"></div>
+        <figcaption>
+          <h3>Feature importance</h3>
+          <p>Fare, sex and age carry most of the forest's predictive weight.</p>
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section class="section section--tint">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Model performance</span>
+        <h2>82.68%, and here is exactly why</h2>
+      </div>
+      <p>The confusion matrix shows both the correct calls and the mistakes behind the accuracy.</p>
+    </div>
+
+    <div class="performance-grid">
+      <div class="card cm-card">
+        <div class="card-head">
+          <h3>Confusion matrix</h3>
+          <span class="muted">{{ metrics.test_total }} test passengers</span>
+        </div>
+        <div class="cm-table" role="table" aria-label="Confusion matrix">
+          <div class="cm-corner">Actual &darr; / Predicted &rarr;</div>
+          <div class="cm-head">Died</div>
+          <div class="cm-head">Survived</div>
+
+          <div class="cm-rowlabel">Died</div>
+          <div class="cm-cell cm-cell--correct">
+            <strong>{{ metrics.cm[0][0] }}</strong>
+            <span>true negatives</span>
+          </div>
+          <div class="cm-cell cm-cell--error">
+            <strong>{{ metrics.cm[0][1] }}</strong>
+            <span>false positives</span>
+          </div>
+
+          <div class="cm-rowlabel">Survived</div>
+          <div class="cm-cell cm-cell--error">
+            <strong>{{ metrics.cm[1][0] }}</strong>
+            <span>false negatives</span>
+          </div>
+          <div class="cm-cell cm-cell--correct">
+            <strong>{{ metrics.cm[1][1] }}</strong>
+            <span>true positives</span>
+          </div>
+        </div>
+        <p class="cm-caption">
+          Correct = {{ metrics.cm[0][0] }} + {{ metrics.cm[1][1] }} = <strong>{{ metrics.correct }}</strong>.
+          Accuracy = {{ metrics.correct }} / {{ metrics.test_total }} = <strong>{{ metrics.accuracy_short }}</strong>.
+        </p>
+      </div>
+
+      <div class="card metrics-card">
+        <div class="card-head">
+          <h3>Per-class scores</h3>
+          <span class="muted">precision / recall / F1</span>
+        </div>
+
+        <div class="class-block">
+          <div class="class-title">
+            <span class="dot dot--blue"></span>
+            <h4>Died</h4>
+            <span class="muted">{{ metrics.class_0['support'] | int }} passengers</span>
+          </div>
+          {% for label, key in [('Precision', 'precision'), ('Recall', 'recall'), ('F1 score', 'f1-score')] %}
+          <div class="metric-row">
+            <span>{{ label }}</span>
+            <div class="metric-track"><div class="metric-fill metric-fill--blue" style="width: {{ (metrics.class_0[key] * 100) | round(1) }}%"></div></div>
+            <strong>{{ '%.2f' | format(metrics.class_0[key]) }}</strong>
+          </div>
+          {% endfor %}
+        </div>
+
+        <div class="class-block">
+          <div class="class-title">
+            <span class="dot dot--orange"></span>
+            <h4>Survived</h4>
+            <span class="muted">{{ metrics.class_1['support'] | int }} passengers</span>
+          </div>
+          {% for label, key in [('Precision', 'precision'), ('Recall', 'recall'), ('F1 score', 'f1-score')] %}
+          <div class="metric-row">
+            <span>{{ label }}</span>
+            <div class="metric-track"><div class="metric-fill metric-fill--orange" style="width: {{ (metrics.class_1[key] * 100) | round(1) }}%"></div></div>
+            <strong>{{ '%.2f' | format(metrics.class_1[key]) }}</strong>
+          </div>
+          {% endfor %}
+        </div>
+
+        <div class="baseline-box">
+          <span>Always predicting "died" would score</span>
+          <strong>{{ '%.2f' | format(metrics.baseline) }}%</strong>
+          <span>The forest beats that baseline by <strong>{{ '%.1f' | format(metrics.improvement) }} points</strong>.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">The pipeline</span>
+        <h2>From raw rows to a prediction</h2>
+      </div>
+      <p>Every choice is simple enough to explain in a live review.</p>
+    </div>
+
+    <ol class="pipeline">
+      <li>
+        <span class="step-number">01</span>
+        <h3>Clean</h3>
+        <p>Drop Cabin (77% missing), fill Embarked with the mode S, fill Age with the median 28.</p>
+      </li>
+      <li>
+        <span class="step-number">02</span>
+        <h3>Engineer</h3>
+        <p>Add FamilySize = SibSp + Parch + 1 and IsAlone for travelling context.</p>
+      </li>
+      <li>
+        <span class="step-number">03</span>
+        <h3>Encode</h3>
+        <p>One-hot encode Sex and Embarked; drop Name, Ticket and PassengerId.</p>
+      </li>
+      <li>
+        <span class="step-number">04</span>
+        <h3>Split</h3>
+        <p>Hold out 20%: 712 passengers for training and 179 for an honest test.</p>
+      </li>
+      <li>
+        <span class="step-number">05</span>
+        <h3>Train</h3>
+        <p>Grow 100 decision trees on bootstrapped samples and let them vote.</p>
+      </li>
+      <li>
+        <span class="step-number">06</span>
+        <h3>Evaluate</h3>
+        <p>Measure accuracy, the confusion matrix, precision, recall and F1.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section class="cta-wrap">
+  <div class="container">
+    <div class="cta">
+      <div>
+        <span class="eyebrow eyebrow--light">Try it yourself</span>
+        <h2>Would this passenger have survived?</h2>
+        <p>Change class, sex, age, fare and family size. The forest updates its probability instantly.</p>
+      </div>
+      <a class="btn btn-light" href="{{ url_for('predict') }}">Open the predictor</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

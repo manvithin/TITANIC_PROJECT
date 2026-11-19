@@ -17,6 +17,9 @@ ENV/
 *.ipynb_autosave
 jupyter_execute/
 
+# Flask
+instance/
+
 # OS files
 .DS_Store
 Thumbs.db

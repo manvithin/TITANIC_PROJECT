@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="An explainable Random Forest that predicts Titanic survival with 82.68% test accuracy.">
+  <title>{% block title %}Titanic Survival Lab{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%230b2545'/><path d='M12 38h40l-6 10H18z' fill='%232ec4b6'/><rect x='28' y='16' width='8' height='18' rx='2' fill='%23f4a261'/></svg>">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="{{ url_for('index') }}" aria-label="Titanic Survival Lab home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 48 48" width="30" height="30">
+            <path d="M6 29h36l-5 8H11z" fill="currentColor"/>
+            <rect x="21" y="10" width="6" height="15" rx="2" fill="#f4a261"/>
+            <path d="M27 12h9l-9 7z" fill="#f4a261"/>
+          </svg>
+        </span>
+        <span class="brand-text">Titanic <small>Survival Lab</small></span>
+      </a>
+
+      <nav class="nav-links" aria-label="Main navigation">
+        <a class="nav-link {% if request.endpoint == 'index' %}is-active{% endif %}" href="{{ url_for('index') }}">Overview</a>
+        <a class="nav-link {% if request.endpoint == 'predict' %}is-active{% endif %}" href="{{ url_for('predict') }}">Predict</a>
+        <a class="nav-link {% if request.endpoint == 'methodology' %}is-active{% endif %}" href="{{ url_for('methodology') }}">Methodology</a>
+        <a class="nav-link {% if request.endpoint == 'dataset' %}is-active{% endif %}" href="{{ url_for('dataset') }}">Dataset</a>
+        <a class="nav-cta" href="{{ repo_url }}" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div>
+        <a class="brand brand--footer" href="{{ url_for('index') }}">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 48 48" width="26" height="26">
+              <path d="M6 29h36l-5 8H11z" fill="currentColor"/>
+              <rect x="21" y="10" width="6" height="15" rx="2" fill="#f4a261"/>
+              <path d="M27 12h9l-9 7z" fill="#f4a261"/>
+            </svg>
+          </span>
+          <span class="brand-text">Titanic <small>Survival Lab</small></span>
+        </a>
+        <p class="footer-note">An explainable machine-learning project built with Python, pandas, scikit-learn and Flask.</p>
+      </div>
+      <div class="footer-links">
+        <a href="{{ url_for('predict') }}">Predict a passenger</a>
+        <a href="{{ url_for('methodology') }}">How it works</a>
+        <a href="{{ url_for('dataset') }}">Dataset</a>
+        <a href="{{ repo_url }}" target="_blank" rel="noopener">Source on GitHub</a>
+      </div>
+      <div class="footer-meta">
+        <span class="pill pill--ghost">Accuracy {{ metrics.accuracy_short }}</span>
+        <span class="pill pill--ghost">{{ metrics.trees }} trees</span>
+        <p>&copy; {{ year }} Titanic Survival Lab</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

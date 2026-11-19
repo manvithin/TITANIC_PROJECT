@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% block title %}Methodology - Titanic Survival Lab{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <div class="container">
+    <span class="eyebrow">How it works</span>
+    <h1>Every decision, explained</h1>
+    <p>The same pipeline runs in the notebook, the terminal script and this website. Nothing is hidden behind the form.</p>
+  </div>
+</section>
+
+<section class="section section--compact">
+  <div class="container">
+    <div class="decision-grid">
+      <article class="decision-card">
+        <span class="decision-index">01</span>
+        <h3>Drop <code>Cabin</code></h3>
+        <p><strong>What:</strong> remove the column entirely.</p>
+        <p><strong>Why:</strong> 687 of 891 values (77%) are missing. Filling it would invent a deck for most passengers and add noise.</p>
+      </article>
+
+      <article class="decision-card">
+        <span class="decision-index">02</span>
+        <h3>Median for <code>Age</code></h3>
+        <p><strong>What:</strong> fill 177 missing ages with 28.0.</p>
+        <p><strong>Why:</strong> the median is robust to outliers. A few very old passengers pull the mean upward; the median stays typical.</p>
+      </article>
+
+      <article class="decision-card">
+        <span class="decision-index">03</span>
+        <h3>Mode for <code>Embarked</code></h3>
+        <p><strong>What:</strong> fill 2 missing ports with <code>S</code> (Southampton).</p>
+        <p><strong>Why:</strong> it is categorical, and the mode is the most frequent and safest replacement.</p>
+      </article>
+
+      <article class="decision-card">
+        <span class="decision-index">04</span>
+        <h3><code>FamilySize</code> and <code>IsAlone</code></h3>
+        <p><strong>What:</strong> <code>FamilySize = SibSp + Parch + 1</code>; <code>IsAlone = 1</code> when the family size is 1.</p>
+        <p><strong>Why:</strong> travelling context matters. Alone passengers survived at about 30%, versus 51% with family.</p>
+      </article>
+
+      <article class="decision-card">
+        <span class="decision-index">05</span>
+        <h3>One-hot encoding</h3>
+        <p><strong>What:</strong> turn <code>Sex</code> into <code>Sex_male</code> and <code>Embarked</code> into <code>Embarked_Q</code> / <code>Embarked_S</code>.</p>
+        <p><strong>Why:</strong> categories have no numeric order. <code>drop_first=True</code> avoids duplicate opposite columns.</p>
+      </article>
+
+      <article class="decision-card">
+        <span class="decision-index">06</span>
+        <h3>Exclude identifiers</h3>
+        <p><strong>What:</strong> drop <code>Name</code>, <code>Ticket</code> and <code>PassengerId</code>.</p>
+        <p><strong>Why:</strong> they are free text or row numbers and do not generalise to new passengers.</p>
+      </article>
+
+      <article class="decision-card">
+        <span class="decision-index">07</span>
+        <h3>80/20 split</h3>
+        <p><strong>What:</strong> 712 passengers train the model; 179 unseen passengers test it.</p>
+        <p><strong>Why:</strong> enough data to learn, enough held-out data for a stable accuracy estimate.</p>
+      </article>
+
+      <article class="decision-card">
+        <span class="decision-index">08</span>
+        <h3>100-tree Random Forest</h3>
+        <p><strong>What:</strong> 100 decision trees vote on each prediction.</p>
+        <p><strong>Why:</strong> averaging reduces the overfitting of a single tree, handles mixed features and needs no scaling.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="section section--tint">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Reading the metrics</span>
+        <h2>What 82.68% actually means</h2>
+      </div>
+      <p>Accuracy is one number; the confusion matrix explains where it comes from.</p>
+    </div>
+
+    <div class="explain-grid">
+      <div class="card formula-card">
+        <h3>Accuracy</h3>
+        <div class="formula">
+          ({{ metrics.cm[0][0] }} + {{ metrics.cm[1][1] }}) / {{ metrics.test_total }}
+          = {{ metrics.correct }} / {{ metrics.test_total }}
+          = <strong>{{ metrics.accuracy_short }}</strong>
+        </div>
+        <p>The model correctly classified {{ metrics.correct }} of the {{ metrics.test_total }} held-out passengers.</p>
+        <p class="muted">Always predicting "died" would score {{ '%.2f' | format(metrics.baseline) }}%, so the forest improves by {{ '%.1f' | format(metrics.improvement) }} points.</p>
+      </div>
+
+      <div class="card formula-card">
+        <h3>Precision and recall - survived class</h3>
+        <div class="formula">
+          Precision = 55 / (55 + 12) = <strong>0.82</strong>
+        </div>
+        <p>When the forest says "survived", it is right about 82% of the time.</p>
+        <div class="formula">
+          Recall = 55 / (55 + 19) = <strong>0.74</strong>
+        </div>
+        <p>It finds about 74% of the people who actually survived. The 19 false negatives are its main weakness.</p>
+        <div class="formula">
+          F1 = 2 &middot; (0.82 &middot; 0.74) / (0.82 + 0.74) = <strong>0.78</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="card reproducibility-card">
+      <div>
+        <span class="eyebrow">Reproducibility</span>
+        <h3>One fixed seed, one exact result</h3>
+        <p>
+          <code>random_state=847</code> fixes the train/test split and the forest's random choices.
+          It reproduces the presentation's 179-row test set (105 died, 74 survived), the
+          <strong>{{ metrics.correct }}/{{ metrics.test_total }}</strong> correct predictions and the
+          <strong>[[93, 12], [19, 55]]</strong> matrix.
+        </p>
+      </div>
+      <div class="repro-stats">
+        <div><strong>847</strong><span>random seed</span></div>
+        <div><strong>{{ metrics.trees }}</strong><span>trees</span></div>
+        <div><strong>10</strong><span>features</span></div>
+        <div><strong>179</strong><span>test rows</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container split-grid">
+    <div>
+      <span class="eyebrow">Honest limitations</span>
+      <h2>What the model still gets wrong</h2>
+      <ul class="check-list check-list--warn">
+        <li>It misses <strong>19 of the 74 survivors</strong> (recall 0.74 for that class).</li>
+        <li>The dataset is small: 891 rows, and only 179 test rows.</li>
+        <li>Median age imputation creates an artificial spike at 28.</li>
+        <li>Seed 847 was chosen to match the reported run; changing it changes the split and the metrics slightly.</li>
+        <li>Impurity-based feature importance is useful for intuition, not proof of causation.</li>
+      </ul>
+    </div>
+    <div>
+      <span class="eyebrow">Next steps</span>
+      <h2>How to improve it</h2>
+      <ul class="check-list">
+        <li>Cross-validation and hyperparameter tuning (<code>max_depth</code>, <code>min_samples_leaf</code>).</li>
+        <li>Extract titles such as Mr / Mrs / Miss from <code>Name</code>.</li>
+        <li>Add cabin-deck or "has cabin" features, and family survival signals.</li>
+        <li>Tune the decision threshold for higher survivor recall.</li>
+        <li>Try gradient boosting (XGBoost or LightGBM) for a stronger baseline.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="cta-wrap">
+  <div class="container">
+    <div class="cta">
+      <div>
+        <span class="eyebrow eyebrow--light">Put it to work</span>
+        <h2>See the pipeline make a prediction</h2>
+        <p>Use the interactive form and inspect the exact features sent to the forest.</p>
+      </div>
+      <a class="btn btn-light" href="{{ url_for('predict') }}">Open the predictor</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

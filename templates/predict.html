@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% block title %}Predict a passenger - Titanic Survival Lab{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <div class="container">
+    <span class="eyebrow">Live prediction</span>
+    <h1>Would this passenger have survived?</h1>
+    <p>Enter the details below. The model applies the same cleaning, feature engineering and 100-tree forest used in the notebook.</p>
+  </div>
+</section>
+
+<section class="section section--compact">
+  <div class="container predict-layout">
+    <form class="card form-card" method="post" action="{{ url_for('predict') }}" id="predict-form">
+      <div class="card-head">
+        <h2>Passenger details</h2>
+        <span class="muted">All fields required</span>
+      </div>
+
+      {% if errors %}
+      <div class="alert" role="alert">
+        <strong>Please check the form:</strong>
+        <ul>
+          {% for error in errors %}<li>{{ error }}</li>{% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      <div class="form-grid">
+        <div class="field">
+          <label for="pclass">Passenger class</label>
+          <select id="pclass" name="pclass">
+            <option value="1" {% if form.pclass == '1' %}selected{% endif %}>1st class</option>
+            <option value="2" {% if form.pclass == '2' %}selected{% endif %}>2nd class</option>
+            <option value="3" {% if form.pclass == '3' %}selected{% endif %}>3rd class</option>
+          </select>
+          <small>Higher class generally meant better lifeboat access.</small>
+        </div>
+
+        <div class="field">
+          <label for="sex">Sex</label>
+          <select id="sex" name="sex">
+            <option value="female" {% if form.sex == 'female' %}selected{% endif %}>Female</option>
+            <option value="male" {% if form.sex == 'male' %}selected{% endif %}>Male</option>
+          </select>
+          <small>Encoded as <code>Sex_male</code>.</small>
+        </div>
+
+        <div class="field">
+          <label for="age">Age (years)</label>
+          <input type="number" id="age" name="age" min="0" max="120" step="0.5" value="{{ form.age }}" required>
+          <small>Missing ages were filled with 28 in training.</small>
+        </div>
+
+        <div class="field">
+          <label for="fare">Fare paid</label>
+          <input type="number" id="fare" name="fare" min="0" max="600" step="0.01" value="{{ form.fare }}" required>
+          <small>Fare is a proxy for class and cabin quality.</small>
+        </div>
+
+        <div class="field">
+          <label for="sibsp">Siblings / spouses aboard</label>
+          <input type="number" id="sibsp" name="sibsp" min="0" max="15" step="1" value="{{ form.sibsp }}" required>
+          <small>Brothers, sisters, step-siblings, husbands or wives.</small>
+        </div>
+
+        <div class="field">
+          <label for="parch">Parents / children aboard</label>
+          <input type="number" id="parch" name="parch" min="0" max="15" step="1" value="{{ form.parch }}" required>
+          <small>Parents, children, step-children or grandchildren.</small>
+        </div>
+
+        <div class="field field--wide">
+          <label for="embarked">Port of embarkation</label>
+          <select id="embarked" name="embarked">
+            <option value="S" {% if form.embarked == 'S' %}selected{% endif %}>Southampton (S)</option>
+            <option value="C" {% if form.embarked == 'C' %}selected{% endif %}>Cherbourg (C)</option>
+            <option value="Q" {% if form.embarked == 'Q' %}selected{% endif %}>Queenstown (Q)</option>
+          </select>
+          <small>Encoded as <code>Embarked_Q</code> and <code>Embarked_S</code>.</small>
+        </div>
+      </div>
+
+      <div class="sample-row">
+        <span>Quick examples:</span>
+        <button type="button" class="chip" data-sample="first-class">First-class woman</button>
+        <button type="button" class="chip" data-sample="third-class">Third-class man</button>
+        <button type="button" class="chip" data-sample="family">Mother with family</button>
+      </div>
+
+      <button class="btn btn-primary btn-block" type="submit">Predict survival <span aria-hidden="true">&rarr;</span></button>
+      <p class="form-note">This is a teaching model, not a historical judgment. A probability is an estimate, not a certainty.</p>
+    </form>
+
+    <aside class="result-column" aria-live="polite">
+      {% if result %}
+      <div class="result-card {% if result.survived %}result-card--survived{% else %}result-card--died{% endif %}">
+        <span class="result-kicker">Model prediction</span>
+        <h2>{{ result.prediction }}</h2>
+        <p class="result-prob">{{ result.probability }}% <span>estimated survival probability</span></p>
+        <div class="prob-track prob-track--large">
+          <div class="prob-fill" style="width: {{ result.probability }}%"></div>
+          <span class="prob-threshold" title="50% decision threshold"></span>
+        </div>
+        <div class="prob-labels">
+          <span>0%</span>
+          <span>50% threshold</span>
+          <span>100%</span>
+        </div>
+
+        <dl class="result-facts">
+          <div>
+            <dt>Family size</dt>
+            <dd>{{ result.family_size }}</dd>
+          </div>
+          <div>
+            <dt>Travelling alone</dt>
+            <dd>{{ "Yes" if result.is_alone else "No" }}</dd>
+          </div>
+          <div>
+            <dt>Model confidence</dt>
+            <dd>{{ result.confidence }}%</dd>
+          </div>
+        </dl>
+
+        <p class="result-summary">
+          At the 50% threshold, this passenger is classified as
+          <strong>{{ result.prediction | lower }}</strong>.
+          The model is {{ metrics.accuracy_short }} accurate on unseen passengers,
+          so individual predictions can still be wrong.
+        </p>
+
+        <details class="feature-details">
+          <summary>Features sent to the forest</summary>
+          <ul>
+            <li><span>Pclass</span><strong>{{ result.features.Pclass }}</strong></li>
+            <li><span>Age</span><strong>{{ result.features.Age }}</strong></li>
+            <li><span>Sex_male</span><strong>{{ result.features.Sex_male }}</strong></li>
+            <li><span>Fare</span><strong>{{ result.features.Fare }}</strong></li>
+            <li><span>FamilySize</span><strong>{{ result.features.FamilySize }}</strong></li>
+            <li><span>IsAlone</span><strong>{{ result.features.IsAlone }}</strong></li>
+            <li><span>Embarked_Q</span><strong>{{ result.features.Embarked_Q }}</strong></li>
+            <li><span>Embarked_S</span><strong>{{ result.features.Embarked_S }}</strong></li>
+          </ul>
+        </details>
+      </div>
+      {% else %}
+      <div class="card placeholder-card">
+        <div class="placeholder-icon" aria-hidden="true">
+          <svg viewBox="0 0 64 64" width="52" height="52">
+            <circle cx="32" cy="32" r="30" fill="#e8f4f3"/>
+            <path d="M14 37h36l-5 9H19z" fill="#0f766e"/>
+            <rect x="29" y="15" width="6" height="18" rx="2" fill="#f4a261"/>
+            <path d="M35 17h11l-11 8z" fill="#f4a261"/>
+          </svg>
+        </div>
+        <h2>Ready when you are</h2>
+        <p>Fill in the passenger details and press <strong>Predict survival</strong>.</p>
+        <ul class="tips">
+          <li>The forest returns a probability, not a guarantee.</li>
+          <li>Try the quick examples to see clear survival and non-survival cases.</li>
+          <li>Open <a href="{{ url_for('methodology') }}">Methodology</a> to explain every step.</li>
+        </ul>
+      </div>
+      {% endif %}
+
+      <div class="card note-card">
+        <h3>What happens behind the scenes</h3>
+        <ol>
+          <li>Your inputs become the same 10 features used in training.</li>
+          <li>All 100 trees vote on survival.</li>
+          <li>The votes become a probability; 50% is the decision threshold.</li>
+        </ol>
+      </div>
+    </aside>
+  </div>
+</section>
+{% endblock %}

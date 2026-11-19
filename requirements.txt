@@ -9,6 +9,7 @@ jupyter>=1.0
 nbconvert>=7.0
 nbformat>=5.9
 ipykernel>=6.0
+flask>=2.3
 
 # Optional: used only by src/download_data.py's HTTP fallback.
 requests>=2.28

@@ -2,53 +2,77 @@
 {% block title %}Titanic Survival Lab - 82.68% accuracy{% endblock %}
 
 {% block content %}
-<section class="hero">
-  <div class="hero-glow" aria-hidden="true"></div>
-  <div class="container hero-grid">
-    <div class="hero-copy">
-      <span class="eyebrow">Machine Learning &middot; Kaggle Titanic</span>
-      <h1>Could you have <span>survived</span> the Titanic?</h1>
-      <p class="hero-lead">
-        A 100-tree Random Forest trained on 891 real passengers. Explore the data,
-        understand the decisions, and predict a passenger's chance of survival.
+<section class="voyage voyage--hero"
+         data-voyage
+         data-voyage-src="{{ url_for('static', filename='lottie/titanic.json') }}"
+         data-voyage-target="{{ url_for('predict') }}"
+         aria-label="Animated Titanic sailing through the North Atlantic at night">
+  <div class="voyage-art" data-voyage-canvas aria-hidden="true"></div>
+
+  <div class="voyage-fallback" aria-hidden="true">
+    <svg viewBox="0 0 520 220" role="presentation">
+      <path d="M56 150h408l-20 34H88z" fill="#15304a"/>
+      <path d="M92 184h336l-14 18H108z" fill="#a74e39"/>
+      <rect x="126" y="138" width="268" height="12" rx="4" fill="#e7eef3"/>
+      <rect x="172" y="110" width="176" height="28" rx="3" fill="#f1e7d3"/>
+      <rect x="192" y="94" width="136" height="16" rx="3" fill="#f7fbfd"/>
+      <g fill="#c96a45">
+        <rect x="196" y="58" width="18" height="44" rx="2"/>
+        <rect x="232" y="52" width="18" height="50" rx="2"/>
+        <rect x="268" y="52" width="18" height="50" rx="2"/>
+        <rect x="304" y="58" width="18" height="44" rx="2"/>
+      </g>
+      <g fill="#1b2c3a">
+        <rect x="195" y="54" width="20" height="7" rx="2"/>
+        <rect x="231" y="48" width="20" height="7" rx="2"/>
+        <rect x="267" y="48" width="20" height="7" rx="2"/>
+        <rect x="303" y="54" width="20" height="7" rx="2"/>
+      </g>
+      <circle cx="420" cy="52" r="26" fill="#f7e8c4" opacity="0.85"/>
+    </svg>
+  </div>
+
+  <div class="voyage-scrim" aria-hidden="true"></div>
+
+  <div class="container voyage-inner">
+    <div class="voyage-copy">
+      <span class="voyage-date">14 April 1912 &middot; North Atlantic</span>
+      <h1 class="voyage-title">891 stories.<br><span>342 survivors.</span></h1>
+      <p class="voyage-lead">
+        A 100-tree Random Forest trained on the real passenger manifest.
+        Explore the data, understand the decisions, and predict who came home.
       </p>
-      <div class="hero-actions">
-        <a class="btn btn-primary" href="{{ url_for('predict') }}">Predict a passenger</a>
+      <div class="voyage-actions">
+        <button class="btn btn-gold" type="button" data-set-sail>
+          Board the ship <span aria-hidden="true">&rarr;</span>
+        </button>
         <a class="btn btn-ghost" href="{{ url_for('methodology') }}">See the methodology</a>
+        <button class="voyage-toggle" type="button" data-voyage-toggle aria-pressed="false" aria-label="Pause or resume the ship animation">
+          <span class="voyage-toggle-icon" aria-hidden="true"><i></i><i></i></span>
+          <span data-voyage-toggle-label>Pause voyage</span>
+        </button>
       </div>
-      <div class="hero-chips">
+      <div class="voyage-chips">
         <span>Random Forest &middot; {{ metrics.trees }} trees</span>
         <span>80/20 split</span>
         <span>Reproducible seed</span>
       </div>
     </div>
 
-    <aside class="score-card" aria-label="Model summary">
-      <div class="score-card-head">
-        <span class="score-kicker">Verified test result</span>
-        <span class="pill pill--success">Reproducible</span>
-      </div>
-      <div class="score-ring" style="--score: {{ metrics.accuracy }}">
+    <span class="voyage-stamp" aria-hidden="true">RMS&nbsp;Titanic</span>
+
+    <aside class="voyage-score" aria-label="Verified model result">
+      <div class="score-ring score-ring--compact" style="--score: {{ metrics.accuracy }}">
         <div class="score-ring-inner">
           <strong>{{ metrics.accuracy_short }}</strong>
           <span>test accuracy</span>
         </div>
       </div>
-      <div class="score-stats">
-        <div>
-          <strong>{{ metrics.correct }}</strong>
-          <span>correct</span>
-        </div>
-        <div>
-          <strong>{{ metrics.test_total }}</strong>
-          <span>test passengers</span>
-        </div>
-        <div>
-          <strong>+{{ metrics.improvement | round(0) | int }}</strong>
-          <span>points over baseline</span>
-        </div>
+      <div class="voyage-score-copy">
+        <span class="voyage-score-kicker">Verified result</span>
+        <strong>{{ metrics.correct }} / {{ metrics.test_total }}</strong>
+        <span>correct on unseen passengers</span>
       </div>
-      <p class="score-footnote">Same metrics as the presentation: 148 of 179 correct.</p>
     </aside>
   </div>
 </section>
@@ -76,12 +100,23 @@
 
 <section class="section">
   <div class="container">
-    <div class="section-head">
+    <div class="section-head section-head--staircase">
       <div>
-        <span class="eyebrow">Exploratory data analysis</span>
-        <h2>The story hidden in the data</h2>
+        <span class="eyebrow">A Deck &middot; The Grand Staircase</span>
+        <h2>The story the ship tells</h2>
       </div>
       <p>Five EDA charts, plus feature importance, explain why the model uses sex, class, fare, age and family size.</p>
+      <svg class="staircase-mark" viewBox="0 0 240 160" aria-hidden="true">
+        <path d="M10 150h40v-24h40V102h40V78h40V54h40V30h20" fill="none" stroke="#b98a3c" stroke-width="2"/>
+        <g stroke="#b98a3c" stroke-width="1.3" opacity="0.65">
+          <line x1="26" y1="150" x2="26" y2="98"/>
+          <line x1="66" y1="126" x2="66" y2="80"/>
+          <line x1="106" y1="102" x2="106" y2="62"/>
+          <line x1="146" y1="78" x2="146" y2="44"/>
+          <line x1="186" y1="54" x2="186" y2="26"/>
+        </g>
+        <path d="M22 100c40 4 74-10 96-32 18-18 38-30 70-34" fill="none" stroke="#b98a3c" stroke-width="2"/>
+      </svg>
     </div>
 
     <div class="chart-grid">
@@ -140,10 +175,10 @@
   <div class="container">
     <div class="section-head">
       <div>
-        <span class="eyebrow">Model performance</span>
+        <span class="eyebrow">The Bridge &middot; Instruments</span>
         <h2>82.68%, and here is exactly why</h2>
       </div>
-      <p>The confusion matrix shows both the correct calls and the mistakes behind the accuracy.</p>
+      <p>The confusion matrix is the ship's log: it shows both the correct calls and the mistakes behind the accuracy.</p>
     </div>
 
     <div class="performance-grid">
@@ -233,7 +268,7 @@
   <div class="container">
     <div class="section-head">
       <div>
-        <span class="eyebrow">The pipeline</span>
+        <span class="eyebrow">Below Decks &middot; Engine Room</span>
         <h2>From raw rows to a prediction</h2>
       </div>
       <p>Every choice is simple enough to explain in a live review.</p>
@@ -278,11 +313,11 @@
   <div class="container">
     <div class="cta">
       <div>
-        <span class="eyebrow eyebrow--light">Try it yourself</span>
+        <span class="eyebrow eyebrow--light">First-class saloon &middot; Try it</span>
         <h2>Would this passenger have survived?</h2>
         <p>Change class, sex, age, fare and family size. The forest updates its probability instantly.</p>
       </div>
-      <a class="btn btn-light" href="{{ url_for('predict') }}">Open the predictor</a>
+      <a class="btn btn-light" href="{{ url_for('predict') }}">Collect a boarding pass</a>
     </div>
   </div>
 </section>

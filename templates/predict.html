@@ -4,30 +4,38 @@
 {% block content %}
 <section class="page-head">
   <div class="container">
-    <span class="eyebrow">Live prediction</span>
-    <h1>Would this passenger have survived?</h1>
-    <p>Enter the details below. The model applies the same cleaning, feature engineering and 100-tree forest used in the notebook.</p>
+    <span class="eyebrow">D Deck &middot; The Purser's Office</span>
+    <h1>Collect your boarding pass</h1>
+    <p>Enter the passenger details. The model applies the same cleaning, feature engineering and 100-tree forest used in the notebook.</p>
+    <span class="page-stamp" aria-hidden="true">White Star Line<br>Admit one</span>
   </div>
 </section>
 
-<section class="section section--compact">
+<section class="section section--compact" data-predict-page>
   <div class="container predict-layout">
-    <form class="card form-card" method="post" action="{{ url_for('predict') }}" id="predict-form">
-      <div class="card-head">
-        <h2>Passenger details</h2>
-        <span class="muted">All fields required</span>
-      </div>
+    <form class="boarding-pass" method="post" action="{{ url_for('predict') }}" id="predict-form">
+      <div class="bp-main">
+        <header class="bp-head">
+          <div class="bp-line"><span>White Star Line</span><span>RMS Titanic</span></div>
+          <h2>Boarding Pass</h2>
+          <div class="bp-route">
+            <div><span>From</span><strong>Southampton</strong></div>
+            <span class="bp-arrow" aria-hidden="true">&rarr;</span>
+            <div><span>To</span><strong>New York</strong></div>
+            <div class="bp-meta"><span>Voyage</span><strong>15 April 1912</strong></div>
+          </div>
+        </header>
 
-      {% if errors %}
-      <div class="alert" role="alert">
-        <strong>Please check the form:</strong>
-        <ul>
-          {% for error in errors %}<li>{{ error }}</li>{% endfor %}
-        </ul>
-      </div>
-      {% endif %}
+        {% if errors %}
+        <div class="alert" role="alert">
+          <strong>Please check the form:</strong>
+          <ul>
+            {% for error in errors %}<li>{{ error }}</li>{% endfor %}
+          </ul>
+        </div>
+        {% endif %}
 
-      <div class="form-grid">
+        <div class="form-grid bp-fields">
         <div class="field">
           <label for="pclass">Passenger class</label>
           <select id="pclass" name="pclass">
@@ -89,14 +97,23 @@
         <button type="button" class="chip" data-sample="family">Mother with family</button>
       </div>
 
-      <button class="btn btn-primary btn-block" type="submit">Predict survival <span aria-hidden="true">&rarr;</span></button>
+      <button class="btn btn-primary btn-block" type="submit">Issue boarding pass <span aria-hidden="true">&rarr;</span></button>
       <p class="form-note">This is a teaching model, not a historical judgment. A probability is an estimate, not a certainty.</p>
+      </div>
+
+      <aside class="bp-stub" aria-hidden="true">
+        <span class="bp-stub-brand">Titanic</span>
+        <span class="bp-stub-no">No. 401</span>
+        <span class="bp-stub-vertical">Admit one</span>
+        <span class="bp-stub-date">15 &middot; 04 &middot; 1912</span>
+      </aside>
     </form>
 
     <aside class="result-column" aria-live="polite">
       {% if result %}
       <div class="result-card {% if result.survived %}result-card--survived{% else %}result-card--died{% endif %}">
-        <span class="result-kicker">Model prediction</span>
+        <span class="result-kicker">White Star Line &middot; Landing card</span>
+        <span class="result-stamp" aria-hidden="true">{{ 'Survived' if result.survived else 'Lost' }}</span>
         <h2>{{ result.prediction }}</h2>
         <p class="result-prob">{{ result.probability }}% <span>estimated survival probability</span></p>
         <div class="prob-track prob-track--large">
@@ -107,6 +124,18 @@
           <span>0%</span>
           <span>50% threshold</span>
           <span>100%</span>
+        </div>
+
+        <div class="result-voyage {% if result.survived %}result-voyage--survived{% else %}result-voyage--died{% endif %}"
+             data-result-voyage
+             data-voyage-src="{{ url_for('static', filename='lottie/titanic.json') }}"
+             data-outcome="{{ 'survived' if result.survived else 'died' }}"
+             data-probability="{{ result.probability }}"
+             title="Click to replay the voyage">
+          <div class="result-voyage-art" data-result-voyage-canvas aria-hidden="true"></div>
+          <p class="result-voyage-caption">
+            {% if result.survived %}The voyage continues{% else %}Lost to the Atlantic{% endif %}
+          </p>
         </div>
 
         <dl class="result-facts">
@@ -136,6 +165,8 @@
           <ul>
             <li><span>Pclass</span><strong>{{ result.features.Pclass }}</strong></li>
             <li><span>Age</span><strong>{{ result.features.Age }}</strong></li>
+            <li><span>SibSp</span><strong>{{ result.features.SibSp }}</strong></li>
+            <li><span>Parch</span><strong>{{ result.features.Parch }}</strong></li>
             <li><span>Sex_male</span><strong>{{ result.features.Sex_male }}</strong></li>
             <li><span>Fare</span><strong>{{ result.features.Fare }}</strong></li>
             <li><span>FamilySize</span><strong>{{ result.features.FamilySize }}</strong></li>
@@ -155,18 +186,18 @@
             <path d="M35 17h11l-11 8z" fill="#f4a261"/>
           </svg>
         </div>
-        <h2>Ready when you are</h2>
-        <p>Fill in the passenger details and press <strong>Predict survival</strong>.</p>
+        <h2>Your pass is waiting</h2>
+        <p>Fill in the passenger details and press <strong>Issue boarding pass</strong>.</p>
         <ul class="tips">
           <li>The forest returns a probability, not a guarantee.</li>
           <li>Try the quick examples to see clear survival and non-survival cases.</li>
-          <li>Open <a href="{{ url_for('methodology') }}">Methodology</a> to explain every step.</li>
+          <li>Open the <a href="{{ url_for('methodology') }}">Engine Room</a> to explain every step.</li>
         </ul>
       </div>
       {% endif %}
 
       <div class="card note-card">
-        <h3>What happens behind the scenes</h3>
+        <h3>What happens below decks</h3>
         <ol>
           <li>Your inputs become the same 10 features used in training.</li>
           <li>All 100 trees vote on survival.</li>

@@ -4,9 +4,10 @@
 {% block content %}
 <section class="page-head">
   <div class="container">
-    <span class="eyebrow">How it works</span>
-    <h1>Every decision, explained</h1>
-    <p>The same pipeline runs in the notebook, the terminal script and this website. Nothing is hidden behind the form.</p>
+    <span class="eyebrow">C Deck &middot; The Engine Room</span>
+    <h1>How the ship thinks</h1>
+    <p>The same pipeline runs in the notebook, the terminal script and this website. Every valve and gear is labelled.</p>
+    <span class="page-stamp" aria-hidden="true">Engine room<br>No secrets</span>
   </div>
 </section>
 
@@ -76,7 +77,7 @@
   <div class="container">
     <div class="section-head">
       <div>
-        <span class="eyebrow">Reading the metrics</span>
+        <span class="eyebrow">The Bridge &middot; Instruments</span>
         <h2>What 82.68% actually means</h2>
       </div>
       <p>Accuracy is one number; the confusion matrix explains where it comes from.</p>
@@ -134,7 +135,7 @@
 <section class="section">
   <div class="container split-grid">
     <div>
-      <span class="eyebrow">Honest limitations</span>
+      <span class="eyebrow">Ice warnings &middot; Limitations</span>
       <h2>What the model still gets wrong</h2>
       <ul class="check-list check-list--warn">
         <li>It misses <strong>19 of the 74 survivors</strong> (recall 0.74 for that class).</li>
@@ -145,7 +146,7 @@
       </ul>
     </div>
     <div>
-      <span class="eyebrow">Next steps</span>
+      <span class="eyebrow">Course corrections</span>
       <h2>How to improve it</h2>
       <ul class="check-list">
         <li>Cross-validation and hyperparameter tuning (<code>max_depth</code>, <code>min_samples_leaf</code>).</li>
@@ -162,11 +163,11 @@
   <div class="container">
     <div class="cta">
       <div>
-        <span class="eyebrow eyebrow--light">Put it to work</span>
+        <span class="eyebrow eyebrow--light">First-class saloon &middot; Put it to work</span>
         <h2>See the pipeline make a prediction</h2>
         <p>Use the interactive form and inspect the exact features sent to the forest.</p>
       </div>
-      <a class="btn btn-light" href="{{ url_for('predict') }}">Open the predictor</a>
+      <a class="btn btn-light" href="{{ url_for('predict') }}">Collect a boarding pass</a>
     </div>
   </div>
 </section>

@@ -22,14 +22,14 @@
             <path d="M27 12h9l-9 7z" fill="#f4a261"/>
           </svg>
         </span>
-        <span class="brand-text">Titanic <small>Survival Lab</small></span>
+        <span class="brand-text">Titanic <small>White Star Line &middot; 1912</small></span>
       </a>
 
       <nav class="nav-links" aria-label="Main navigation">
-        <a class="nav-link {% if request.endpoint == 'index' %}is-active{% endif %}" href="{{ url_for('index') }}">Overview</a>
-        <a class="nav-link {% if request.endpoint == 'predict' %}is-active{% endif %}" href="{{ url_for('predict') }}">Predict</a>
-        <a class="nav-link {% if request.endpoint == 'methodology' %}is-active{% endif %}" href="{{ url_for('methodology') }}">Methodology</a>
-        <a class="nav-link {% if request.endpoint == 'dataset' %}is-active{% endif %}" href="{{ url_for('dataset') }}">Dataset</a>
+        <a class="nav-link {% if request.endpoint == 'index' %}is-active{% endif %}" href="{{ url_for('index') }}" title="Overview">Decks</a>
+        <a class="nav-link {% if request.endpoint == 'predict' %}is-active{% endif %}" href="{{ url_for('predict') }}" title="Predict a passenger">Boarding Pass</a>
+        <a class="nav-link {% if request.endpoint == 'methodology' %}is-active{% endif %}" href="{{ url_for('methodology') }}" title="Methodology">Engine Room</a>
+        <a class="nav-link {% if request.endpoint == 'dataset' %}is-active{% endif %}" href="{{ url_for('dataset') }}" title="Dataset">Manifest</a>
         <a class="nav-cta" href="{{ repo_url }}" target="_blank" rel="noopener">GitHub</a>
       </nav>
     </div>
@@ -50,14 +50,14 @@
               <path d="M27 12h9l-9 7z" fill="#f4a261"/>
             </svg>
           </span>
-          <span class="brand-text">Titanic <small>Survival Lab</small></span>
+          <span class="brand-text">Titanic <small>White Star Line &middot; 1912</small></span>
         </a>
-        <p class="footer-note">An explainable machine-learning project built with Python, pandas, scikit-learn and Flask.</p>
+        <p class="footer-note">An explainable machine-learning project built with Python, pandas, scikit-learn and Flask. Southampton to New York, 14 April 1912.</p>
       </div>
       <div class="footer-links">
-        <a href="{{ url_for('predict') }}">Predict a passenger</a>
-        <a href="{{ url_for('methodology') }}">How it works</a>
-        <a href="{{ url_for('dataset') }}">Dataset</a>
+        <a href="{{ url_for('predict') }}">Collect a boarding pass</a>
+        <a href="{{ url_for('methodology') }}">Engine room notes</a>
+        <a href="{{ url_for('dataset') }}">Passenger manifest</a>
         <a href="{{ repo_url }}" target="_blank" rel="noopener">Source on GitHub</a>
       </div>
       <div class="footer-meta">
@@ -68,6 +68,8 @@
     </div>
   </footer>
 
+  <script src="{{ url_for('static', filename='js/lottie.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/voyage.js') }}"></script>
   <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>

@@ -34,6 +34,7 @@ from src.pipeline import (
     DATA_DIR,
     FIGURES_DIR,
     MODEL_PATH,
+    build_model,
     load_titanic_data,
     missing_value_counts,
     prepare_data,
@@ -82,10 +83,16 @@ DEFAULT_FORM = {
 
 @lru_cache(maxsize=1)
 def get_metrics() -> dict:
-    """Evaluate the saved model once and return everything the pages display."""
+    """Evaluate the saved model once and return everything the pages display.
+
+    The evaluation model is trained on the training split only (no leakage),
+    matching ``src/train_model.py`` so the reported accuracy reproduces the
+    exact presentation numbers (82.68%, [[93, 12], [19, 55]]).  Production
+    predictions via ``get_model()`` still train on all data for best results.
+    """
     _, X, y = prepare_data()
     X_train, X_test, y_train, y_test = split_data(X, y)
-    model = get_model()
+    model = build_model().fit(X_train, y_train)
     y_pred = model.predict(X_test)
 
     cm = confusion_matrix(y_test, y_pred)

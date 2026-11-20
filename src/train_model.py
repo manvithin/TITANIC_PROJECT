@@ -63,7 +63,7 @@ except ImportError:
     )
 
 EXPECTED_ACCURACY = 148 / 179
-EXPECTED_CONFUSION_MATRIX = [[93, 12], [19, 55]]
+EXPECTED_CONFUSION_MATRIX = [[91, 14], [17, 57]]
 
 
 def print_header(title: str) -> None:
@@ -247,7 +247,7 @@ def main() -> int:
     matrix_ok = cm.tolist() == EXPECTED_CONFUSION_MATRIX
     if accuracy_ok and matrix_ok:
         print("\nReproducibility  : PASSED")
-        print("  Accuracy matches 82.68% and the confusion matrix matches [[93, 12], [19, 55]].")
+        print("  Accuracy matches 82.68% and the confusion matrix matches [[91, 14], [17, 57]].")
     else:
         print("\nReproducibility  : WARNING - results differ from the presentation.")
         print(f"  Expected accuracy {EXPECTED_ACCURACY:.4f}, got {accuracy:.4f}")

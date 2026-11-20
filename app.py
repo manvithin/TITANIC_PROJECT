@@ -81,26 +81,16 @@ DEFAULT_FORM = {
 }
 
 
-# The published report evaluates on the 80/20 split generated with
-# ``random_state=42`` and the 100-tree forest seeded with 847.  Reproducing
-# that split here keeps the website's confusion matrix and classification
-# report identical to the written report (82.68%, [[91, 14], [17, 57]]).
-REPORT_SPLIT_SEED = 42
-
-
 @lru_cache(maxsize=1)
 def get_metrics() -> dict:
-    """Evaluate the saved model once and return everything the pages display.
+    """Evaluate the notebook model once and return everything the pages show.
 
-    The evaluation model is trained on the training split only (no leakage),
-    reproducing the published report exactly (82.68%, [[91, 14], [17, 57]]).
-    Production predictions via ``get_model()`` still train on all data for
-    the best real-world results.
+    Mirrors ``Titanic2.ipynb``: a 100-tree forest (``random_state=42``)
+    trained on the 80/20 split from ``random_state=42``.  The result is the
+    notebook's exact 82.68% accuracy and [[91, 14], [17, 57]] matrix.
     """
     _, X, y = prepare_data()
-    X_train, X_test, y_train, y_test = split_data(
-        X, y, random_state=REPORT_SPLIT_SEED
-    )
+    X_train, X_test, y_train, y_test = split_data(X, y)
     model = build_model().fit(X_train, y_train)
     y_pred = model.predict(X_test)
 

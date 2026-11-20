@@ -17,6 +17,7 @@ from .pipeline import (
     OUTPUT_DIR,
     build_model,
     prepare_data,
+    split_data,
 )
 
 # Used only if the saved model cannot report its own feature names.
@@ -38,6 +39,11 @@ DEFAULT_FEATURE_ORDER = [
 def get_model():
     """Load the saved forest, or train it on first use.
 
+    The forest is trained exactly as in ``Titanic2.ipynb``: the 80/20 split
+    from ``random_state=42`` (712 training rows) and a 100-tree forest with
+    ``random_state=42``.  This is the same model the website reports its
+    metrics for, so predictions and the confusion matrix agree.
+
     Saving is best effort: serverless filesystems (for example Vercel) are
     read-only apart from /tmp, so a failed ``joblib.dump`` must never prevent
     the freshly trained model from being served.
@@ -49,7 +55,8 @@ def get_model():
             pass
 
     _, X, y = prepare_data()
-    model = build_model().fit(X, y)
+    X_train, _, y_train, _ = split_data(X, y)
+    model = build_model().fit(X_train, y_train)
     try:
         OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
         joblib.dump(model, MODEL_PATH)

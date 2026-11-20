@@ -34,10 +34,10 @@ FIGURES_DIR = OUTPUT_DIR / "figures"
 MODEL_PATH = OUTPUT_DIR / "titanic_random_forest.joblib"
 METRICS_PATH = OUTPUT_DIR / "metrics.txt"
 
-# A single fixed seed makes the split AND the forest reproducible.
-# 847 is the split seed that reproduces the presentation's exact test set
-# (179 rows, 105 non-survivors / 74 survivors) and its reported metrics.
-RANDOM_STATE = 847
+# The project reproduces Titanic2.ipynb exactly: one fixed seed (42) for both
+# the train/test split and the forest.  It yields the notebook's 179-row test
+# set, 82.68% accuracy and the [[91, 14], [17, 57]] confusion matrix.
+RANDOM_STATE = 42
 TEST_SIZE = 0.2
 N_ESTIMATORS = 100
 
@@ -192,17 +192,13 @@ def prepare_data(
 def split_data(
     X: pd.DataFrame, y: pd.Series, random_state: int = RANDOM_STATE
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
-    """Split into 80% train / 20% test using the fixed project seed.
-
-    ``random_state`` can be overridden by callers that must reproduce a
-    specific published split (see ``REPORT_SPLIT_SEED`` in ``app.py``).
-    """
+    """Split into 80% train / 20% test using the project seed (42)."""
     return train_test_split(X, y, test_size=TEST_SIZE, random_state=random_state)
 
 
-def build_model() -> RandomForestClassifier:
-    """Create the 100-tree Random Forest used in the presentation."""
+def build_model(random_state: int = RANDOM_STATE) -> RandomForestClassifier:
+    """Create the notebook's 100-tree Random Forest."""
     return RandomForestClassifier(
         n_estimators=N_ESTIMATORS,
-        random_state=RANDOM_STATE,
+        random_state=random_state,
     )

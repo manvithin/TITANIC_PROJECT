@@ -101,7 +101,35 @@
   }
 
   // ------------------------------------------------------- sailing transition
+  //
+  // The destination page is prefetched ahead of time (on hover/focus and once
+  // the page goes idle).  That warms the serverless function and the model, so
+  // the browser can paint /predict immediately instead of leaving a blank
+  // blue wipe on screen while the function cold-starts.
+  var WARMED = Object.create(null);
+
+  function warm(target) {
+    if (!target) return Promise.resolve();
+    if (WARMED[target]) return WARMED[target];
+    WARMED[target] = fetch(target, { credentials: "same-origin" })
+      .then(function (response) {
+        return response && response.text();
+      })
+      .catch(function () {
+        return null;
+      });
+    return WARMED[target];
+  }
+
+  // Timeline: sail for 1.6 s, wipe over 0.82 s, then leave.  The wipe holds a
+  // "preparing boarding pass" loader so a slow first paint never looks dead.
+  var SAIL_WIPE_AT = 1600;
+  var SAIL_WIPE_MS = 820;
+  var SAIL_MIN_NAV = SAIL_WIPE_AT + SAIL_WIPE_MS;
+
   function sailTo(target) {
+    var warmup = warm(target);
+
     if (reduceMotion) {
       window.location.href = target;
       return;
@@ -116,43 +144,82 @@
       "<span></span><span></span><span></span><span></span>" +
       "</div>" +
       '<p class="sail-caption">Full steam ahead</p>' +
-      '<div class="sail-wipe" aria-hidden="true"></div>';
+      '<div class="sail-wipe">' +
+      '<div class="sail-loader" role="status" aria-live="polite">' +
+      '<span class="sail-loader-ring" aria-hidden="true"></span>' +
+      '<p class="sail-loader-text">Preparing your boarding pass</p>' +
+      '<span class="sail-loader-dots" aria-hidden="true">' +
+      "<i></i><i></i><i></i></span>" +
+      "</div>" +
+      "</div>";
 
     document.body.appendChild(overlay);
     document.body.classList.add("is-sailing");
 
     var sceneAnim = load(overlay.querySelector("[data-sail-art]"), lottieSrc);
-    if (sceneAnim) sceneAnim.setSpeed(2.4);
+    if (sceneAnim) sceneAnim.setSpeed(1.8);
 
     window.requestAnimationFrame(function () {
       overlay.classList.add("is-active");
     });
 
-    window.setTimeout(function () {
-      overlay.classList.add("is-wiping");
-    }, 1150);
-
-    window.setTimeout(function () {
+    var navigated = false;
+    function go() {
+      if (navigated) return;
+      navigated = true;
       try { window.sessionStorage.setItem("titanic:boarded", "1"); } catch (e) {}
       window.location.href = target;
-    }, 1750);
+    }
+
+    window.setTimeout(function () {
+      overlay.classList.add("is-wiping");
+    }, SAIL_WIPE_AT);
+
+    // Leave as soon as the wipe has fully covered the viewport; the prefetch
+    // started above usually finishes long before that.
+    Promise.all([
+      new Promise(function (resolve) {
+        window.setTimeout(resolve, SAIL_MIN_NAV);
+      }),
+      Promise.race([
+        warmup,
+        new Promise(function (resolve) {
+          window.setTimeout(resolve, SAIL_MIN_NAV);
+        })
+      ])
+    ]).then(go);
 
     // Safety net: never trap the visitor on the transition screen.
-    window.setTimeout(function () {
-      window.location.href = target;
-    }, 4000);
+    window.setTimeout(go, 7000);
   }
 
   document.querySelectorAll("[data-set-sail]").forEach(function (trigger) {
+    var target =
+      trigger.getAttribute("href") ||
+      (stage && stage.getAttribute("data-voyage-target")) ||
+      "/predict";
+
+    ["pointerenter", "focus", "touchstart"].forEach(function (eventName) {
+      trigger.addEventListener(eventName, function () {
+        warm(target);
+      }, { passive: true });
+    });
+
     trigger.addEventListener("click", function (event) {
-      var target =
-        trigger.getAttribute("href") ||
-        (stage && stage.getAttribute("data-voyage-target")) ||
-        "/predict";
       event.preventDefault();
       sailTo(target);
     });
   });
+
+  // Warm the predictor in the background so the first click is instant.
+  window.setTimeout(function () {
+    var first = document.querySelector("[data-set-sail]");
+    var idleTarget =
+      (first && first.getAttribute("href")) ||
+      (stage && stage.getAttribute("data-voyage-target")) ||
+      "/predict";
+    warm(idleTarget);
+  }, 1200);
 
   // ------------------------------------------------------- result vignette
   var vignette = document.querySelector("[data-result-voyage]");

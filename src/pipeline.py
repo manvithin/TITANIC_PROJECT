@@ -190,10 +190,14 @@ def prepare_data(
 # ---------------------------------------------------------------------------
 
 def split_data(
-    X: pd.DataFrame, y: pd.Series
+    X: pd.DataFrame, y: pd.Series, random_state: int = RANDOM_STATE
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
-    """Split into 80% train / 20% test using the fixed project seed."""
-    return train_test_split(X, y, test_size=TEST_SIZE, random_state=RANDOM_STATE)
+    """Split into 80% train / 20% test using the fixed project seed.
+
+    ``random_state`` can be overridden by callers that must reproduce a
+    specific published split (see ``REPORT_SPLIT_SEED`` in ``app.py``).
+    """
+    return train_test_split(X, y, test_size=TEST_SIZE, random_state=random_state)
 
 
 def build_model() -> RandomForestClassifier:

@@ -81,17 +81,26 @@ DEFAULT_FORM = {
 }
 
 
+# The published report evaluates on the 80/20 split generated with
+# ``random_state=42`` and the 100-tree forest seeded with 847.  Reproducing
+# that split here keeps the website's confusion matrix and classification
+# report identical to the written report (82.68%, [[91, 14], [17, 57]]).
+REPORT_SPLIT_SEED = 42
+
+
 @lru_cache(maxsize=1)
 def get_metrics() -> dict:
     """Evaluate the saved model once and return everything the pages display.
 
     The evaluation model is trained on the training split only (no leakage),
-    matching ``src/train_model.py`` so the reported accuracy reproduces the
-    exact presentation numbers (82.68%, [[93, 12], [19, 55]]).  Production
-    predictions via ``get_model()`` still train on all data for best results.
+    reproducing the published report exactly (82.68%, [[91, 14], [17, 57]]).
+    Production predictions via ``get_model()`` still train on all data for
+    the best real-world results.
     """
     _, X, y = prepare_data()
-    X_train, X_test, y_train, y_test = split_data(X, y)
+    X_train, X_test, y_train, y_test = split_data(
+        X, y, random_state=REPORT_SPLIT_SEED
+    )
     model = build_model().fit(X_train, y_train)
     y_pred = model.predict(X_test)
 

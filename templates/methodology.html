@@ -98,15 +98,15 @@
       <div class="card formula-card">
         <h3>Precision and recall - survived class</h3>
         <div class="formula">
-          Precision = 55 / (55 + 12) = <strong>0.82</strong>
+          Precision = {{ metrics.cm[1][1] }} / ({{ metrics.cm[1][1] }} + {{ metrics.cm[0][1] }}) = <strong>{{ '%.2f' | format(metrics.class_1['precision']) }}</strong>
         </div>
-        <p>When the forest says "survived", it is right about 82% of the time.</p>
+        <p>When the forest says "survived", it is right about {{ (metrics.class_1['precision'] * 100) | round | int }}% of the time.</p>
         <div class="formula">
-          Recall = 55 / (55 + 19) = <strong>0.74</strong>
+          Recall = {{ metrics.cm[1][1] }} / ({{ metrics.cm[1][1] }} + {{ metrics.cm[1][0] }}) = <strong>{{ '%.2f' | format(metrics.class_1['recall']) }}</strong>
         </div>
-        <p>It finds about 74% of the people who actually survived. The 19 false negatives are its main weakness.</p>
+        <p>It finds about {{ (metrics.class_1['recall'] * 100) | round | int }}% of the people who actually survived. The {{ metrics.cm[1][0] }} false negatives are its main weakness.</p>
         <div class="formula">
-          F1 = 2 &middot; (0.82 &middot; 0.74) / (0.82 + 0.74) = <strong>0.78</strong>
+          F1 = 2 &middot; {{ metrics.cm[1][1] }} / (2 &middot; {{ metrics.cm[1][1] }} + {{ metrics.cm[0][1] }} + {{ metrics.cm[1][0] }}) = <strong>{{ '%.2f' | format(metrics.class_1['f1-score']) }}</strong>
         </div>
       </div>
     </div>
@@ -114,16 +114,17 @@
     <div class="card reproducibility-card">
       <div>
         <span class="eyebrow">Reproducibility</span>
-        <h3>One fixed seed, one exact result</h3>
+        <h3>Two fixed seeds, one exact result</h3>
         <p>
-          <code>random_state=847</code> fixes the train/test split and the forest's random choices.
-          It reproduces the presentation's 179-row test set (105 died, 74 survived), the
+          <code>random_state=42</code> fixes the train/test split and
+          <code>random_state=847</code> fixes the forest's random choices.
+          Together they reproduce the report's 179-row test set (105 died, 74 survived), the
           <strong>{{ metrics.correct }}/{{ metrics.test_total }}</strong> correct predictions and the
-          <strong>[[93, 12], [19, 55]]</strong> matrix.
+          <strong>[[{{ metrics.cm[0][0] }}, {{ metrics.cm[0][1] }}], [{{ metrics.cm[1][0] }}, {{ metrics.cm[1][1] }}]]</strong> matrix.
         </p>
       </div>
       <div class="repro-stats">
-        <div><strong>847</strong><span>random seed</span></div>
+        <div><strong>42 / 847</strong><span>split / forest seed</span></div>
         <div><strong>{{ metrics.trees }}</strong><span>trees</span></div>
         <div><strong>10</strong><span>features</span></div>
         <div><strong>179</strong><span>test rows</span></div>
@@ -138,10 +139,10 @@
       <span class="eyebrow">Ice warnings &middot; Limitations</span>
       <h2>What the model still gets wrong</h2>
       <ul class="check-list check-list--warn">
-        <li>It misses <strong>19 of the 74 survivors</strong> (recall 0.74 for that class).</li>
+        <li>It misses <strong>{{ metrics.cm[1][0] }} of the {{ metrics.class_1['support'] | int }} survivors</strong> (recall {{ '%.2f' | format(metrics.class_1['recall']) }} for that class).</li>
         <li>The dataset is small: 891 rows, and only 179 test rows.</li>
         <li>Median age imputation creates an artificial spike at 28.</li>
-        <li>Seed 847 was chosen to match the reported run; changing it changes the split and the metrics slightly.</li>
+        <li>The split seed (42) and forest seed (847) were chosen to match the published report; changing them changes the metrics slightly.</li>
         <li>Impurity-based feature importance is useful for intuition, not proof of causation.</li>
       </ul>
     </div>
